@@ -1,0 +1,89 @@
+Credentials
+{
+	_key: string,
+	PasswordHash: string,
+}
+
+Users
+{
+	_key: string,				
+	Name: string,
+	Phone: string,
+	email: string,
+	Email: string,
+	IsVerified: bool,
+	VerificationLink: string,
+	AddressKey: string,
+	BirthDate: string,
+	Gender: char,
+	PhotoLink: string,
+	UserType: char,	
+
+	# Pacients
+
+	Height: float,
+	Weight: float,
+
+	# Staff
+
+	Designation: string
+}
+
+
+
+UserTypes
+{
+	_key: char,
+	Type: string
+}
+
+Addresses
+{
+	_key: string,
+	Country: string,
+	City: string,
+	ZipCode: string,
+	Street: string,
+	House: string,
+	Appartment: string
+}
+
+TimeSlot
+{
+	_key: string,
+	StartTime: string,
+	EndTime: string,
+	StartDate: string,
+	EndDate: string,
+	Days: [string],
+	RepeatWeeks: int
+}
+
+Appointments
+{
+	_key: string,
+	PatientKey: string,
+	DoctorKey: string,
+	Date: string,
+	StartTime: string,
+	EndTime: string,
+	ReportURL: string
+}
+
+Medicines
+{
+	_key: string,
+	Title: string,
+	Count: int,
+	ExpirationDate: string
+}
+
+Tests
+{
+	_key: string,
+	LaboratoristKey: string,
+	Title: string,
+	PatientKey: string,
+	Date: string,
+	ReportURL: string
+}
