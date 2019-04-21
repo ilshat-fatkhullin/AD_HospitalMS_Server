@@ -13,7 +13,7 @@ namespace HospitalMSServer.JSONConverters
                 throw new ArgumentNullException("jObject");
             }
 
-            if (jObject["userType"].ToString() == UserType.PATIENT)
+            if (jObject["UserType"].ToString() == UserType.PATIENT)
             {
                 return new Patient();
             }

@@ -7,7 +7,7 @@ using System.Linq;
 namespace HospitalMSServer.Models.Database
 {
     [JsonConverter(typeof(UserJsonConverter))]
-    [CollectionProperty(CollectionName = "User")]
+    [CollectionProperty(CollectionName = "User", Naming = NamingConvention.UnChanged)]
     public abstract class User
     {
         [DocumentProperty(Identifier = IdentifierType.Key)]
@@ -25,15 +25,15 @@ namespace HospitalMSServer.Models.Database
         public abstract void InsertIntoDB(DatabaseManager databaseManager);
         public abstract void UpdateInDB(DatabaseManager databaseManager);
 
-        public void RemoveFromDB(DatabaseManager databaseManager)
+        public static void RemoveFromDB(DatabaseManager databaseManager, string key)
         {
-            databaseManager.Database.Remove<User>(this);
+            databaseManager.Database.RemoveById<User>(key);
         }
 
-        public bool IsInDB(DatabaseManager databaseManager)
+        public static bool IsInDB(DatabaseManager databaseManager, string key)
         {
             return databaseManager.Database.Query<User>()
-                .Where(u => u.Key == Key)
+                .Where(u => u.Key == key)
                 .Count() > 0;
         }
 

@@ -2,6 +2,7 @@
 
 namespace HospitalMSServer.Models.Database
 {
+    [CollectionProperty(CollectionName = "Address", Naming = NamingConvention.UnChanged)]
     public class Address
     {
         [DocumentProperty(Identifier = IdentifierType.Key)]

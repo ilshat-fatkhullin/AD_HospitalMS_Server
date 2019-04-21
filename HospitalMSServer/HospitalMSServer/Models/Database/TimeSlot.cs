@@ -2,6 +2,7 @@
 
 namespace HospitalMSServer.Models.Database
 {
+    [CollectionProperty(CollectionName = "TimeSlot", Naming = NamingConvention.UnChanged)]
     public class TimeSlot
     {
         [DocumentProperty(Identifier = IdentifierType.Key)]

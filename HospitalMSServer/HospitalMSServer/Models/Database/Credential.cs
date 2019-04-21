@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace HospitalMSServer.Models.Database
 {
+    [CollectionProperty(CollectionName = "Credential", Naming = NamingConvention.UnChanged)]
     public class Credential
     {
         [DocumentProperty(Identifier = IdentifierType.Key)]

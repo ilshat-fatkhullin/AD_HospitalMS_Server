@@ -2,6 +2,7 @@
 
 namespace HospitalMSServer.Models.Database
 {
+    [CollectionProperty(CollectionName = "Test", Naming = NamingConvention.UnChanged)]
     public class Test
     {
         [DocumentProperty(Identifier = IdentifierType.Key)]

@@ -2,6 +2,7 @@
 
 namespace HospitalMSServer.Models.Database
 {
+    [CollectionProperty(CollectionName = "UserType", Naming = NamingConvention.UnChanged)]
     public class UserType
     {
         public const string ADMIN = "A";

@@ -3,7 +3,7 @@ using HospitalMSServer.Helpers;
 
 namespace HospitalMSServer.Models.Database
 {
-    [CollectionProperty(CollectionName = "User")]
+    [CollectionProperty(CollectionName = "User", Naming = NamingConvention.UnChanged)]
     public class Patient : User
     {
         public float Weight { get; set; }

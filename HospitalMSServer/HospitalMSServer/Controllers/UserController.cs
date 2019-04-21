@@ -1,5 +1,6 @@
 ﻿using HospitalMSServer.Helpers;
 using HospitalMSServer.Models;
+using HospitalMSServer.Models.Authentication;
 using HospitalMSServer.Models.Database;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -28,7 +29,7 @@ namespace HospitalMSServer.Controllers
         [HttpPost]
         public MessageResponse AddUser(User user)
         {            
-            if (user.IsInDB(databaseManager))
+            if (Models.Database.User.IsInDB(databaseManager, user.Key))
             {                
                 return new MessageResponse("User already exists");
             }
@@ -40,7 +41,7 @@ namespace HospitalMSServer.Controllers
         [HttpPut]
         public MessageResponse EditUser(User user)
         {
-            if (user.IsInDB(databaseManager))
+            if (Models.Database.User.IsInDB(databaseManager, user.Key))
             {
                 user.UpdateInDB(databaseManager);
                 return new MessageResponse("User updated");
@@ -48,13 +49,13 @@ namespace HospitalMSServer.Controllers
             return new MessageResponse("There is no such user");
         }
 
-        [Route("delete_users")]
+        [Route("delete_user")]
         [HttpDelete]
-        public MessageResponse DeleteUser(User user)
+        public MessageResponse DeleteUser(DeleteUserRequest request)
         {
-            if (user.IsInDB(databaseManager))
+            if (Models.Database.User.IsInDB(databaseManager, request.Key))
             {
-                user.RemoveFromDB(databaseManager);
+                Models.Database.User.RemoveFromDB(databaseManager, request.Key);
                 return new MessageResponse("User removed");
             }
             return new MessageResponse("There is no such user");

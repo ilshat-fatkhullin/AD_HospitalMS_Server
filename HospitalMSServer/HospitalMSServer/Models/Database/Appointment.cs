@@ -2,6 +2,7 @@
 
 namespace HospitalMSServer.Models.Database
 {
+    [CollectionProperty(CollectionName = "Appointment", Naming = NamingConvention.UnChanged)]
     public class Appointment
     {
         [DocumentProperty(Identifier = IdentifierType.Key)]

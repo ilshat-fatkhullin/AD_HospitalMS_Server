@@ -120,7 +120,7 @@ namespace HospitalMSServer.Controllers
                 throw new ArgumentException();
             }
 
-            string userName = parts[0][0] + '.' + parts[1];
+            string userName = parts[0][0].ToString() + "." + parts[1];
             int repeats = databaseManager.Database.Query<Credential>()
                 .Where(c => AQL.Contains(c.Key, userName)).Count();
             return userName + Convert.ToString(repeats);
