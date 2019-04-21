@@ -4,7 +4,7 @@ using System.Net.Mail;
 
 namespace HospitalMSServer.Helpers
 {
-    public static class VerificationHelper
+    public static class EmailHelper
     {
         private const string SMTP_SERVER = "smtp.yandex.ru";
 
@@ -31,6 +31,11 @@ namespace HospitalMSServer.Helpers
         {
             string body = "<a href=\"http://www.yourwebsitename.com/api/authentication/verify?verificationLink=" + verificationLink + "\">click here to verify</a>";
             SendMail(SMTP_SERVER, EMAIL, "5ObwKYw5SMThqqmfzYKO", address, "Verification", body);
+        }
+
+        public static void SendPasswordResetEmail(string address, string password)
+        {
+            SendMail(SMTP_SERVER, EMAIL, "5ObwKYw5SMThqqmfzYKO", address, "Password reset", "Your new password: " + password);
         }
 
         private static void SendMail(string smtpServer, string from, string password, string mailto, string caption, string message, string attachFile = null)

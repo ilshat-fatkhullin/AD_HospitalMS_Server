@@ -1,5 +1,6 @@
 ﻿using ArangoDB.Client;
 using HospitalMSServer.Helpers;
+using HospitalMSServer.Models;
 using HospitalMSServer.Models.Authentication;
 using HospitalMSServer.Models.Database;
 using Microsoft.AspNetCore.Mvc;
@@ -24,72 +25,50 @@ namespace HospitalMSServer.Controllers
 
         [Route("sign_in")]
         [HttpPost]
-        public AuthentificationResponse SignIn(SignInRequest request)
+        public MessageResponse SignIn(SignInRequest request)
         {
-            AuthentificationResponse response = new AuthentificationResponse();
-
             if (request == null)
             {
-                response.Message = "Wrong credentials";
+                return new MessageResponse("Wrong credentials");
             }
-            else
+
+            if (Credential.GetByLoginAndHashFromDB(databaseManager, request.Login, encryptionHelper.GetHash(request.Password)) == null)
             {
-                string passwordHash = encryptionHelper.GetHash(request.Password);
-
-                Credential credentials = databaseManager.Database.Query<Credential>()
-                    .FirstOrDefault(c => c.Key == request.Login &&                                    
-                                    c.PasswordHash == passwordHash);
-
-                if (credentials == null)
-                {
-                    response.Message = "Wrong login or password";
-                }
-                else
-                {
-                    response.Message = "Authenticated";
-                }
+                return new MessageResponse("Wrong login or password");
             }
 
-            return response;
+            return new MessageResponse("Authenticated");
         }
 
         [Route("sign_up")]
         [HttpPost]
-        public AuthentificationResponse SignUp(SignUpRequest signUpModel)
+        public MessageResponse SignUp(SignUpRequest signUpModel)
         {
-            AuthentificationResponse response = new AuthentificationResponse();
-
-            if (signUpModel == null || signUpModel.User == null ||
-                signUpModel.User.Name == null || signUpModel.Password == null ||
-                signUpModel.User.Phone == null || signUpModel.User.Email == null)
+            if (signUpModel == null || signUpModel.IsInvalid() || signUpModel.User.IsInvalid())
             {
-                response.Message = "Wrong data";
-                return response;
+                return new MessageResponse("Wrong data");
             }
 
-            if (databaseManager.Database.Query<User>().FirstOrDefault(u => u.Email == signUpModel.User.Email) != null)
+            if (Models.Database.User.GetByEmailFromDB(databaseManager, signUpModel.User.Email) != null)
             {
-                response.Message = "This email already registered";
-                return response;
-            }            
+                return new MessageResponse("This email already registered");
+            }
 
-            if (signUpModel.User.UserType == 'A')
+            if (signUpModel.User.UserType == UserType.ADMIN)
             {
-                response.Message = "Security violation";
-                return response;
+                return new MessageResponse("Security violation");
             }
 
             signUpModel.User.IsVerified = false;
-            signUpModel.User.VerificationLink = VerificationHelper.GetRandomVerificationLink();
+            signUpModel.User.VerificationLink = EmailHelper.GetRandomVerificationLink();
 
             try
             {
-                VerificationHelper.SendVerificationEmail(signUpModel.User.Email, signUpModel.User.VerificationLink);
+                EmailHelper.SendVerificationEmail(signUpModel.User.Email, signUpModel.User.VerificationLink);
             }
             catch (Exception ex)
-            {                
-                response.Message = ex.Message;
-                return response;
+            {
+                return new MessageResponse(ex.Message);
             }
 
             databaseManager.Database.Insert<User>(signUpModel.User);
@@ -102,37 +81,35 @@ namespace HospitalMSServer.Controllers
             }
             catch (ArgumentException)
             {
-                response.Message = "Wrong name format";
-                return response;
+                return new MessageResponse("Wrong name format");
             }
 
             credentials.PasswordHash = encryptionHelper.GetHash(signUpModel.Password);
             databaseManager.Database.Insert<Credential>(credentials);
 
-            response.Message = "Registered";
-            return response;
+            return new MessageResponse("Registered");
         }
 
         [Route("verify")]
         [HttpGet]
         public string Verify(string verificationLink)
-        {            
-            User user = databaseManager.Database.Query<User>().FirstOrDefault(u => u.VerificationLink == verificationLink);
+        {
+            User user = Models.Database.User.GetByVerificationLinkFromDB(databaseManager, verificationLink);
 
             if (user == null)
             {
                 return "Wrong verification link";
-            }            
+            }
 
             user.IsVerified = true;
-            databaseManager.Database.Update<User>(user);
-            return "User verified";            
+            user.UpdateInDB(databaseManager);
+            return "User is verified";
         }
 
         private string GetLoginFromName(string name)
         {
             name = name.ToLower();
-            if (name == null || name.Length == 0)
+            if (string.IsNullOrEmpty(name))
             {
                 throw new ArgumentException();
             }
@@ -147,6 +124,48 @@ namespace HospitalMSServer.Controllers
             int repeats = databaseManager.Database.Query<Credential>()
                 .Where(c => AQL.Contains(c.Key, userName)).Count();
             return userName + Convert.ToString(repeats);
+        }
+
+        [Route("change_password")]
+        [HttpPut]
+        public MessageResponse ChangePassword(ChangePasswordRequest request)
+        {
+            if (request == null || request.IsInvalid())
+            {
+                return new MessageResponse("Wrong request");
+            }
+
+            Credential credential = Credential.GetByLoginAndHashFromDB(databaseManager, request.Login, encryptionHelper.GetHash(request.Password));
+
+            if (credential == null)
+            {
+                return new MessageResponse("Wrong login or password");
+            }
+            credential.PasswordHash = encryptionHelper.GetHash(request.NewPassword);
+            databaseManager.Database.Update<Credential>(credential);
+            return new MessageResponse("Password was successfuly changed");
+        }
+
+        public MessageResponse ResetPassword(ResetPasswordRequest request)
+        {
+            if (request == null || request.IsInvalid())
+            {
+                return new MessageResponse("Wrong request");
+            }
+
+            User user = Models.Database.User.GetByEmailFromDB(databaseManager, request.Email);
+            if (user == null)
+            {
+                return new MessageResponse("There are no such user");
+            }
+
+            Credential credential = databaseManager.Database.Query<Credential>().FirstOrDefault(c => c.Key == user.Key);
+            string newPassword = EmailHelper.GetRandomVerificationLink();
+            EmailHelper.SendPasswordResetEmail(request.Email, newPassword);
+            credential.PasswordHash = encryptionHelper.GetHash(newPassword);
+            databaseManager.Database.Update<Credential>(credential);
+
+            return new MessageResponse("Reset");
         }
     }
 }
